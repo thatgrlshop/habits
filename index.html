@@ -98,6 +98,28 @@
       border: 1px solid #ddd;
       border-radius: 5px;
       background-color: #fff;
+     .habit-report {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  width: 70%;
+  height: 10px;
+  background-color: #ddd;
+  border-radius: 5px;
+  margin-left: 10px;
+  position: relative;
+}
+
+.progress {
+  height: 100%;
+  background-color: #A17E89;
+  border-radius: 5px;
+  width: 0; /* Default */
+  transition: width 0.3s ease-in-out;
+} 
     }
   </style>
 </head>
@@ -131,7 +153,27 @@
     <button id="save-habits">Save Habits</button>
   </div>
   <button id="show-report">Show Monthly Report</button>
-  <div class="report" id="report" style="display: none;"></div>
+  <div class="report" id="report" style="display: none;">
+  <h2>Monthly Report</h2>
+  <div class="habit-report" id="habit-water">
+    <label>Water Intake:</label>
+    <div class="progress-bar">
+      <div class="progress"></div>
+    </div>
+  </div>
+  <div class="habit-report" id="habit-workout">
+    <label>Workout:</label>
+    <div class="progress-bar">
+      <div class="progress"></div>
+    </div>
+  </div>
+  <div class="habit-report" id="habit-read">
+    <label>Read 10 pages:</label>
+    <div class="progress-bar">
+      <div class="progress"></div>
+    </div>
+  </div>
+</div>
 
   <script>
     const calendar = document.getElementById("calendar");
@@ -222,25 +264,39 @@
     }
 
     showReportButton.addEventListener("click", () => {
-      const currentMonth = currentMonthElement.textContent;
-      const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      const monthData = savedHabits[currentMonth] || {};
+  const currentMonth = currentMonthElement.textContent;
+  const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
+  const monthData = savedHabits[currentMonth] || {};
 
-      report.innerHTML = "<h2>Monthly Report</h2>";
-      Object.keys(monthData).forEach(day => {
-        const dayData = monthData[day];
-        report.innerHTML += `
-          <div>
-            <strong>${day}:</strong> 
-            Water: ${dayData.waterIntake.filter(Boolean).length}/4, 
-            Workout: ${dayData.workout ? "Yes" : "No"}, 
-            Read: ${dayData.readPages ? "Yes" : "No"}
-          </div>
-        `;
-      });
+  // Inizializza i contatori
+  let waterTotal = 0, waterMax = 0;
+  let workoutCount = 0, readCount = 0;
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
-      report.style.display = "block";
-    });
+  // Calcola i progressi
+  Object.keys(monthData).forEach(day => {
+    const dayData = monthData[day];
+    waterTotal += dayData.waterIntake.filter(Boolean).length;
+    waterMax += 4; // Max acqua giornaliera
+    if (dayData.workout) workoutCount++;
+    if (dayData.readPages) readCount++;
+  });
+
+  // Aggiorna la barra di Water Intake
+  const waterProgress = (waterTotal / (waterMax || 1)) * 100;
+  document.querySelector("#habit-water .progress").style.width = `${waterProgress}%`;
+
+  // Aggiorna la barra di Workout
+  const workoutProgress = (workoutCount / daysInMonth) * 100;
+  document.querySelector("#habit-workout .progress").style.width = `${workoutProgress}%`;
+
+  // Aggiorna la barra di Read
+  const readProgress = (readCount / daysInMonth) * 100;
+  document.querySelector("#habit-read .progress").style.width = `${readProgress}%`;
+
+  // Mostra il report
+  report.style.display = "block";
+});
 
     prevMonthButton.addEventListener("click", () => {
   currentDate.setMonth(currentDate.getMonth() - 1);
