@@ -164,26 +164,13 @@
   <button id="save-habit-changes">Save Changes</button>
 </div>
   <button id="show-report">Show Monthly Report</button>
-  <div class="report" id="report" style="display: none;">
+  <!-- Monthly Report -->
+<div class="report" id="report" style="display: none;">
   <h2>Monthly Report</h2>
-  <div class="habit-report" id="habit-water">
-    <label>Water Intake:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
-    </div>
+  <div id="report-habits-list">
+    <!-- Report habit progress bars will be dynamically added here -->
   </div>
-  <div class="habit-report" id="habit-workout">
-    <label>Workout:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
-    </div>
-  </div>
-  <div class="habit-report" id="habit-read">
-    <label>Read 10 pages:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
-    </div>
-  </div>
+</div>
 </div>
 
   <script>
@@ -196,201 +183,171 @@
     const report = document.getElementById("report");
     const showReportButton = document.getElementById("show-report");
 
+    const editHabitsButton = document.getElementById("edit-habits");
+    const editHabitsModal = document.getElementById("edit-habits-modal");
+    const saveHabitChangesButton = document.getElementById("save-habit-changes");
+    const habitList = document.getElementById("habit-list");
+    const habitOptions = document.querySelectorAll(".habit-option");
+    const currentMonthTitle = document.getElementById("current-month-title");
+
     let currentDate = new Date();
 
+    // Generazione del calendario
     function generateCalendar() {
-      calendar.innerHTML = "";
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDayIndex = new Date(year, month, 1).getDay();
+        calendar.innerHTML = "";
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstDayIndex = new Date(year, month, 1).getDay();
 
-      currentMonthElement.textContent = `${currentDate.toLocaleString("default", {
-        month: "long",
-      })} ${year}`;
+        currentMonthElement.textContent = `${currentDate.toLocaleString("default", {
+            month: "long",
+        })} ${year}`;
 
-      for (let i = 0; i < firstDayIndex; i++) {
-        const emptyDiv = document.createElement("div");
-        calendar.appendChild(emptyDiv);
-      }
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyDiv = document.createElement("div");
+            calendar.appendChild(emptyDiv);
+        }
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement("div");
-        dayElement.classList.add("day");
-        dayElement.textContent = day;
-        dayElement.addEventListener("click", () => selectDay(day));
-        calendar.appendChild(dayElement);
-      }
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement("div");
+            dayElement.classList.add("day");
+            dayElement.textContent = day;
+            dayElement.addEventListener("click", () => selectDay(day));
+            calendar.appendChild(dayElement);
+        }
     }
 
+    // Selezione del giorno
     function selectDay(day) {
-      const allDays = document.querySelectorAll(".day");
-      allDays.forEach((d) => d.classList.remove("active"));
-      const selectedDay = [...allDays].find((d) => d.textContent == day);
-      selectedDay.classList.add("active");
+        const allDays = document.querySelectorAll(".day");
+        allDays.forEach((d) => d.classList.remove("active"));
+        const selectedDay = [...allDays].find((d) => d.textContent == day);
+        selectedDay.classList.add("active");
 
-      const date = `${day} ${currentDate.toLocaleString("default", {
-        month: "long",
-      })} ${currentDate.getFullYear()}`;
-      selectedDateElement.textContent = date;
-      habits.style.display = "block";
+        const date = `${day} ${currentDate.toLocaleString("default", {
+            month: "long",
+        })} ${currentDate.getFullYear()}`;
+        selectedDateElement.textContent = date;
+        habits.style.display = "block";
 
-      loadHabits(date);
+        loadDailyHabits(); // Carica le abitudini giornaliere
+        loadHabits(date); // Carica i dati salvati per quel giorno
     }
 
+    // Salvataggio delle abitudini giornaliere
     document.getElementById("save-habits").addEventListener("click", () => {
-      const day = selectedDateElement.textContent;
-      const waterIntake = [
-        document.getElementById("water-drop-1").checked,
-        document.getElementById("water-drop-2").checked,
-        document.getElementById("water-drop-3").checked,
-        document.getElementById("water-drop-4").checked,
-      ];
-      const workout = document.getElementById("workout").checked;
-      const readPages = document.getElementById("read-pages").checked;
+        const day = selectedDateElement.textContent;
+        const currentMonth = currentMonthElement.textContent;
+        const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
+        const habitsData = {};
 
-      const habitsData = { waterIntake, workout, readPages };
-      const existingData = JSON.parse(localStorage.getItem("habitTracker")) || {};
+        monthlyHabits.forEach(habit => {
+            const habitId = habit.replace(/\s+/g, '-').toLowerCase();
+            const habitCheckbox = document.getElementById(habitId);
+            habitsData[habit] = habitCheckbox && habitCheckbox.checked;
+        });
 
-      const [dayNumber, month, year] = day.split(" ");
-      if (!existingData[`${month} ${year}`]) existingData[`${month} ${year}`] = {};
-      existingData[`${month} ${year}`][dayNumber] = habitsData;
+        const existingData = JSON.parse(localStorage.getItem("habitTracker")) || {};
+        if (!existingData[currentMonth]) existingData[currentMonth] = {};
+        existingData[currentMonth][day] = habitsData;
 
-      localStorage.setItem("habitTracker", JSON.stringify(existingData));
-      alert("Habits saved! ✨");
+        localStorage.setItem("habitTracker", JSON.stringify(existingData));
+        alert("Habits saved! ✨");
     });
 
-    function loadHabits(date) {
-      const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      const [day, month, year] = date.split(" ");
-      const habitsData = savedHabits[`${month} ${year}`]?.[day] || {};
-      const waterIntake = habitsData.waterIntake || [false, false, false, false];
-
-      document.getElementById("water-drop-1").checked = waterIntake[0];
-      document.getElementById("water-drop-2").checked = waterIntake[1];
-      document.getElementById("water-drop-3").checked = waterIntake[2];
-      document.getElementById("water-drop-4").checked = waterIntake[3];
-      document.getElementById("workout").checked = habitsData.workout || false;
-      document.getElementById("read-pages").checked = habitsData.readPages || false;
+    // Funzione per caricare le abitudini giornaliere
+    function loadDailyHabits() {
+        habitList.innerHTML = ""; // Pulisci le abitudini precedenti
+        const currentMonth = currentMonthElement.textContent;
+        const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
+        monthlyHabits.forEach(habit => {
+            const habitItem = document.createElement("div");
+            habitItem.classList.add("habit-item");
+            habitItem.innerHTML = `
+                <label>${habit}:</label>
+                <input type="checkbox" id="${habit.replace(/\s+/g, '-').toLowerCase()}">
+            `;
+            habitList.appendChild(habitItem);
+        });
     }
 
+    // Funzione per caricare i dati di un giorno
+    function loadHabits(date) {
+        const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
+        const [day, month, year] = date.split(" ");
+        const habitsData = savedHabits[`${month} ${year}`]?.[day] || {};
+        const currentMonth = currentMonthElement.textContent;
+        const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
+
+        monthlyHabits.forEach(habit => {
+            const habitId = habit.replace(/\s+/g, '-').toLowerCase();
+            const habitCheckbox = document.getElementById(habitId);
+            if (habitCheckbox) {
+                habitCheckbox.checked = habitsData[habit] || false;
+            }
+        });
+    }
+
+    // Report mensile
     showReportButton.addEventListener("click", () => {
-  const currentMonth = currentMonthElement.textContent;
-  const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-  const monthData = savedHabits[currentMonth] || {};
+        const currentMonth = currentMonthElement.textContent;
+        const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
+        const monthData = JSON.parse(localStorage.getItem("habitTracker"))?.[currentMonth] || {};
 
-  // Inizializza i contatori
-  let waterTotal = 0, waterMax = 0;
-  let workoutCount = 0, readCount = 0;
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+        const reportHabitsList = document.getElementById("report-habits-list");
+        reportHabitsList.innerHTML = ""; // Pulisci la lista precedente
 
-  // Calcola i progressi
-  Object.keys(monthData).forEach(day => {
-    const dayData = monthData[day];
-    waterTotal += dayData.waterIntake.filter(Boolean).length;
-    waterMax += 4; // Max acqua giornaliera
-    if (dayData.workout) workoutCount++;
-    if (dayData.readPages) readCount++;
-  });
+        savedHabits.forEach(habit => {
+            let habitTotal = 0;
+            let habitMax = 0;
 
-  // Aggiorna la barra di Water Intake
-  const waterProgress = (waterTotal / (waterMax || 1)) * 100;
-  document.querySelector("#habit-water .progress").style.width = `${waterProgress}%`;
+            // Calcola i progressi
+            Object.keys(monthData).forEach(day => {
+                if (monthData[day][habit]) {
+                    habitTotal += Array.isArray(monthData[day][habit])
+                        ? monthData[day][habit].filter(Boolean).length
+                        : 1; // Se è un array (es. Water Intake), somma i valori true
+                    habitMax += Array.isArray(monthData[day][habit]) ? 4 : 1; // Max giornaliero
+                }
+            });
 
-  // Aggiorna la barra di Workout
-  const workoutProgress = (workoutCount / daysInMonth) * 100;
-  document.querySelector("#habit-workout .progress").style.width = `${workoutProgress}%`;
+            // Crea il report dinamico
+            const habitProgress = (habitTotal / (habitMax || 1)) * 100;
+            const habitReportItem = `
+                <div class="habit-report">
+                    <label>${habit}:</label>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${habitProgress}%;"></div>
+                    </div>
+                </div>
+            `;
+            reportHabitsList.innerHTML += habitReportItem;
+        });
 
-  // Aggiorna la barra di Read
-  const readProgress = (readCount / daysInMonth) * 100;
-  document.querySelector("#habit-read .progress").style.width = `${readProgress}%`;
+        report.style.display = "block"; // Mostra il report
+    });
 
-  // Mostra il report
-  report.style.display = "block";
-});
-
+    // Cambia mese
     prevMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  generateCalendar();
-});
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        generateCalendar();
+    });
 
-nextMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  generateCalendar();
-});
+    nextMonthButton.addEventListener("click", () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        generateCalendar();
+    });
 
-// Inizializza il calendario al caricamento della pagina
-generateCalendar();
+    // Inizializza il calendario al caricamento della pagina
+    generateCalendar();
 
-
-
-const editHabitsButton = document.getElementById("edit-habits");
-const editHabitsModal = document.getElementById("edit-habits-modal");
-const saveHabitChangesButton = document.getElementById("save-habit-changes");
-const habitList = document.getElementById("habit-list");
-const habitOptions = document.querySelectorAll(".habit-option");
-const currentMonthTitle = document.getElementById("current-month-title");
-
-// Aggiorna il titolo della finestra di modifica
-currentMonthTitle.textContent = currentMonthElement.textContent;
-
-// Funzione per caricare le abitudini mensili
-function loadMonthlyHabits() {
-  const currentMonth = currentMonthElement.textContent;
-  const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || ["Water Intake", "Workout", "Read 10 Pages"];
-
-  // Aggiorna le opzioni di modifica
-  habitOptions.forEach(option => {
-    option.checked = savedHabits.includes(option.value);
-  });
-
-  // Aggiorna la lista delle abitudini giornaliere
-  loadDailyHabits(savedHabits);
-}
-
-// Funzione per salvare le abitudini mensili
-saveHabitChangesButton.addEventListener("click", () => {
-  const currentMonth = currentMonthElement.textContent;
-  const selectedHabits = Array.from(habitOptions)
-    .filter(option => option.checked)
-    .map(option => option.value);
-
-  localStorage.setItem(`monthlyHabits-${currentMonth}`, JSON.stringify(selectedHabits));
-  alert("Habit settings saved for this month! ✨");
-  editHabitsModal.style.display = "none";
-
-  // Ricarica le abitudini giornaliere
-  loadDailyHabits(selectedHabits);
-});
-
-// Funzione per caricare le abitudini giornaliere
-function loadDailyHabits(selectedHabits) {
-  habitList.innerHTML = "";
-  selectedHabits.forEach(habit => {
-    const habitItem = document.createElement("div");
-    habitItem.classList.add("habit-item");
-    habitItem.innerHTML = `
-      <label>${habit}:</label>
-      <input type="checkbox">
-    `;
-    habitList.appendChild(habitItem);
-  });
-}
-
-// Apri la finestra di modifica
-editHabitsButton.addEventListener("click", () => {
-  editHabitsModal.style.display = "block";
-});
-
-// Funzione per caricare le abitudini al caricamento della pagina
-function initializeHabits() {
-  loadMonthlyHabits();
-}
-
-// Inizializza le abitudini
-initializeHabits();
-    
-  </script>
+    // Caricamento iniziale delle abitudini
+    function initializeHabits() {
+        loadDailyHabits();
+    }
+    initializeHabits();
+</script>
 </body>
 </html>
 
