@@ -120,6 +120,17 @@
   width: 0; /* Default */
   transition: width 0.3s ease-in-out;
 } 
+ .edit-habits-modal {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
@@ -132,26 +143,26 @@
   </div>
   <div class="calendar" id="calendar"></div>
   <div class="habits" id="habits">
-    <h2 id="selected-date"></h2>
-    <div class="habit-item">
-      <label>Water Intake:</label>
-      <div class="water-drops">
-        <input type="checkbox" id="water-drop-1">
-        <input type="checkbox" id="water-drop-2">
-        <input type="checkbox" id="water-drop-3">
-        <input type="checkbox" id="water-drop-4">
-      </div>
-    </div>
-    <div class="habit-item">
-      <label>Workout:</label>
-      <input type="checkbox" id="workout">
-    </div>
-    <div class="habit-item">
-      <label>Read 10 pages:</label>
-      <input type="checkbox" id="read-pages">
-    </div>
-    <button id="save-habits">Save Habits</button>
+  <h2 id="selected-date"></h2>
+  <div id="habit-list">
+    <!-- Habit items will be dynamically loaded here -->
   </div>
+  <button id="save-habits">Save Habits</button>
+  <button id="edit-habits">Edit Habits</button>
+</div>
+
+<!-- Modal for Editing Habits -->
+<div class="edit-habits-modal" id="edit-habits-modal" style="display: none;">
+  <h2>Edit Habits for <span id="current-month-title"></span></h2>
+  <div class="habit-options">
+    <label><input type="checkbox" class="habit-option" value="Water Intake" checked> Water Intake</label>
+    <label><input type="checkbox" class="habit-option" value="Workout" checked> Workout</label>
+    <label><input type="checkbox" class="habit-option" value="Read 10 Pages" checked> Read 10 Pages</label>
+    <label><input type="checkbox" class="habit-option" value="Meditation"> Meditation</label>
+    <label><input type="checkbox" class="habit-option" value="Stretching"> Stretching</label>
+  </div>
+  <button id="save-habit-changes">Save Changes</button>
+</div>
   <button id="show-report">Show Monthly Report</button>
   <div class="report" id="report" style="display: none;">
   <h2>Monthly Report</h2>
@@ -310,6 +321,75 @@ nextMonthButton.addEventListener("click", () => {
 
 // Inizializza il calendario al caricamento della pagina
 generateCalendar();
+
+
+
+const editHabitsButton = document.getElementById("edit-habits");
+const editHabitsModal = document.getElementById("edit-habits-modal");
+const saveHabitChangesButton = document.getElementById("save-habit-changes");
+const habitList = document.getElementById("habit-list");
+const habitOptions = document.querySelectorAll(".habit-option");
+const currentMonthTitle = document.getElementById("current-month-title");
+
+// Aggiorna il titolo della finestra di modifica
+currentMonthTitle.textContent = currentMonthElement.textContent;
+
+// Funzione per caricare le abitudini mensili
+function loadMonthlyHabits() {
+  const currentMonth = currentMonthElement.textContent;
+  const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || ["Water Intake", "Workout", "Read 10 Pages"];
+
+  // Aggiorna le opzioni di modifica
+  habitOptions.forEach(option => {
+    option.checked = savedHabits.includes(option.value);
+  });
+
+  // Aggiorna la lista delle abitudini giornaliere
+  loadDailyHabits(savedHabits);
+}
+
+// Funzione per salvare le abitudini mensili
+saveHabitChangesButton.addEventListener("click", () => {
+  const currentMonth = currentMonthElement.textContent;
+  const selectedHabits = Array.from(habitOptions)
+    .filter(option => option.checked)
+    .map(option => option.value);
+
+  localStorage.setItem(`monthlyHabits-${currentMonth}`, JSON.stringify(selectedHabits));
+  alert("Habit settings saved for this month! ✨");
+  editHabitsModal.style.display = "none";
+
+  // Ricarica le abitudini giornaliere
+  loadDailyHabits(selectedHabits);
+});
+
+// Funzione per caricare le abitudini giornaliere
+function loadDailyHabits(selectedHabits) {
+  habitList.innerHTML = "";
+  selectedHabits.forEach(habit => {
+    const habitItem = document.createElement("div");
+    habitItem.classList.add("habit-item");
+    habitItem.innerHTML = `
+      <label>${habit}:</label>
+      <input type="checkbox">
+    `;
+    habitList.appendChild(habitItem);
+  });
+}
+
+// Apri la finestra di modifica
+editHabitsButton.addEventListener("click", () => {
+  editHabitsModal.style.display = "block";
+});
+
+// Funzione per caricare le abitudini al caricamento della pagina
+function initializeHabits() {
+  loadMonthlyHabits();
+}
+
+// Inizializza le abitudini
+initializeHabits();
+    
   </script>
 </body>
 </html>
