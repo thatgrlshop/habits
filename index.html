@@ -350,47 +350,57 @@ const saveHabitSettingsButton = document.getElementById("save-habits-settings");
 const habitList = document.getElementById("habit-list");
 const currentMonthTitle = document.getElementById("current-month-title");
 
-currentMonthTitle.textContent = currentMonth;
+// Aggiorna il titolo del mese corrente
+currentMonthTitle.textContent = currentMonthElement.textContent;
 
-// Load monthly habits
+// Carica le abitudini mensili salvate
 function loadMonthlyHabits() {
+  const currentMonth = currentMonthElement.textContent; // Titolo del mese corrente
   const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
-  habitOptionsContainer.innerHTML = "";
+  habitOptionsContainer.innerHTML = ""; // Ripulisce l'elenco
+
+  // Aggiunge ogni abitudine salvata come opzione
   savedHabits.forEach(habit => {
     addHabitOption(habit, true);
   });
 }
 
-// Add habit to options
-function addHabitOption(habit, checked) {
+// Aggiunge un'opzione di abitudine all'elenco
+function addHabitOption(habit, checked = true) {
   const habitOption = document.createElement("label");
-  habitOption.innerHTML = `<input type="checkbox" class="habit-select" value="${habit}" ${checked ? "checked" : ""}> ${habit}`;
+  habitOption.innerHTML = `
+    <input type="checkbox" class="habit-select" value="${habit}" ${checked ? "checked" : ""}> 
+    ${habit}`;
   habitOptionsContainer.appendChild(habitOption);
 }
 
-// Add custom habit
+// Aggiunge una nuova abitudine personalizzata
 addHabitButton.addEventListener("click", () => {
-  const newHabit = customHabitInput.value.trim();
+  const newHabit = customHabitInput.value.trim(); // Rimuove spazi vuoti
   if (newHabit) {
-    addHabitOption(newHabit, true);
-    customHabitInput.value = "";
+    addHabitOption(newHabit); // Aggiunge l'opzione alla lista
+    customHabitInput.value = ""; // Pulisce il campo di input
+  } else {
+    alert("Please enter a valid habit name!"); // Mostra un avviso se il campo è vuoto
   }
 });
 
-// Save monthly habits
+// Salva le impostazioni mensili delle abitudini
 saveHabitSettingsButton.addEventListener("click", () => {
   const selectedHabits = Array.from(document.querySelectorAll(".habit-select"))
-    .filter(input => input.checked)
-    .map(input => input.value);
+    .filter(input => input.checked) // Filtra solo le opzioni selezionate
+    .map(input => input.value); // Estrae il valore delle opzioni selezionate
 
-  localStorage.setItem(`monthlyHabits-${currentMonth}`, JSON.stringify(selectedHabits));
+  const currentMonth = currentMonthElement.textContent; // Mese corrente
+  localStorage.setItem(`monthlyHabits-${currentMonth}`, JSON.stringify(selectedHabits)); // Salva in localStorage
   alert("Habit settings saved for this month! ✨");
-  loadDailyHabits();
+  loadDailyHabits(); // Ricarica l'elenco giornaliero
 });
 
-// Load daily habits based on monthly settings
+// Carica le abitudini giornaliere dalla configurazione mensile
 function loadDailyHabits() {
-  habitList.innerHTML = "";
+  habitList.innerHTML = ""; // Ripulisce l'elenco giornaliero
+  const currentMonth = currentMonthElement.textContent;
   const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
   monthlyHabits.forEach(habit => {
     const habitItem = document.createElement("div");
@@ -403,7 +413,7 @@ function loadDailyHabits() {
   });
 }
 
-// Initial Load
+// Caricamento iniziale delle abitudini
 loadMonthlyHabits();
 loadDailyHabits();
     
