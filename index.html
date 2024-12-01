@@ -109,7 +109,7 @@
       height: 100%;
       background-color: #A17E89;
       border-radius: 5px;
-      width: 0; /* Default */
+      width: 0;
       transition: width 0.3s ease-in-out;
     }
     .edit-habits-modal {
@@ -179,72 +179,51 @@
 
     let currentDate = new Date();
 
-    function generateCalendar() {
-      calendar.innerHTML = "";
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDayIndex = new Date(year, month, 1).getDay();
+  // Generazione del calendario
+function generateCalendar() {
+  calendar.innerHTML = "";
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayIndex = new Date(year, month, 1).getDay();
 
-      currentMonthElement.textContent = `${currentDate.toLocaleString("default", {
-        month: "long",
-      })} ${year}`;
+  currentMonthElement.textContent = `${currentDate.toLocaleString("default", { month: "long" })} ${year}`;
 
-      for (let i = 0; i < firstDayIndex; i++) {
-        const emptyDiv = document.createElement("div");
-        calendar.appendChild(emptyDiv);
-      }
+  for (let i = 0; i < firstDayIndex; i++) {
+    const emptyDiv = document.createElement("div");
+    calendar.appendChild(emptyDiv);
+  }
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement("div");
-        dayElement.classList.add("day");
-        dayElement.textContent = day;
-        dayElement.addEventListener("click", () => selectDay(day));
-        calendar.appendChild(dayElement);
-      }
-    }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayElement = document.createElement("div");
+    dayElement.classList.add("day");
+    dayElement.textContent = day;
+    dayElement.addEventListener("click", () => selectDay(day));
+    calendar.appendChild(dayElement);
+  }
+}
 
-    function selectDay(day) {
-      const allDays = document.querySelectorAll(".day");
-      allDays.forEach((d) => d.classList.remove("active"));
-      const selectedDay = [...allDays].find((d) => d.textContent == day);
-      selectedDay.classList.add("active");
+// Selezione del giorno
+function selectDay(day) {
+  const allDays = document.querySelectorAll(".day");
+  allDays.forEach((d) => d.classList.remove("active"));
+  const selectedDay = [...allDays].find((d) => d.textContent == day);
+  selectedDay.classList.add("active");
 
-      const date = `${day} ${currentDate.toLocaleString("default", {
-        month: "long",
-      })} ${currentDate.getFullYear()}`;
-      selectedDateElement.textContent = date;
-      habits.style.display = "block";
+  const date = `${day} ${currentDate.toLocaleString("default", { month: "long" })} ${currentDate.getFullYear()}`;
+  selectedDateElement.textContent = date;
+  habits.style.display = "block";
 
-      loadDailyHabits();
-      loadHabits(date);
-    }
+  loadDailyHabits(); // Carica le abitudini giornaliere
+  loadHabits(date); // Carica i dati salvati per quel giorno
+}
 
-    document.getElementById("save-habits").addEventListener("click", () => {
-      const day = selectedDateElement.textContent;
-      const currentMonth = currentMonthElement.textContent;
-      const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
-      const habitsData = {};
-
-      monthlyHabits.forEach(habit => {
-        const habitId = habit.replace(/\s+/g, '-').toLowerCase();
-        const habitCheckbox = document.getElementById(habitId);
-        habitsData[habit] = habitCheckbox && habitCheckbox.checked;
-      });
-
-      const existingData = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      if (!existingData[currentMonth]) existingData[currentMonth] = {};
-      existingData[currentMonth][day] = habitsData;
-
-      localStorage.setItem("habitTracker", JSON.stringify(existingData));
-      alert("Habits saved! ✨”);
-});
-
+// Caricamento delle abitudini giornaliere
 function loadDailyHabits() {
-  habitList.innerHTML = ""; // Pulisci le abitudini precedenti
+  habitList.innerHTML = "";
   const currentMonth = currentMonthElement.textContent;
   const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
-  monthlyHabits.forEach(habit => {
+  monthlyHabits.forEach((habit) => {
     const habitItem = document.createElement("div");
     habitItem.classList.add("habit-item");
     habitItem.innerHTML = `
@@ -255,6 +234,28 @@ function loadDailyHabits() {
   });
 }
 
+// Salvataggio delle abitudini giornaliere
+document.getElementById("save-habits").addEventListener("click", () => {
+  const day = selectedDateElement.textContent;
+  const currentMonth = currentMonthElement.textContent;
+  const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
+  const habitsData = {};
+
+  monthlyHabits.forEach((habit) => {
+    const habitId = habit.replace(/\s+/g, '-').toLowerCase();
+    const habitCheckbox = document.getElementById(habitId);
+    habitsData[habit] = habitCheckbox && habitCheckbox.checked;
+  });
+
+  const existingData = JSON.parse(localStorage.getItem("habitTracker")) || {};
+  if (!existingData[currentMonth]) existingData[currentMonth] = {};
+  existingData[currentMonth][day] = habitsData;
+
+  localStorage.setItem("habitTracker", JSON.stringify(existingData));
+  alert("Habits saved! ✨");
+});
+
+// Caricamento dei dati salvati per un giorno
 function loadHabits(date) {
   const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
   const [day, month, year] = date.split(" ");
@@ -262,7 +263,7 @@ function loadHabits(date) {
   const currentMonth = currentMonthElement.textContent;
   const monthlyHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
 
-  monthlyHabits.forEach(habit => {
+  monthlyHabits.forEach((habit) => {
     const habitId = habit.replace(/\s+/g, '-').toLowerCase();
     const habitCheckbox = document.getElementById(habitId);
     if (habitCheckbox) {
@@ -271,29 +272,28 @@ function loadHabits(date) {
   });
 }
 
+// Report mensile
 showReportButton.addEventListener("click", () => {
   const currentMonth = currentMonthElement.textContent;
   const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || [];
   const monthData = JSON.parse(localStorage.getItem("habitTracker"))?.[currentMonth] || {};
 
   const reportHabitsList = document.getElementById("report-habits-list");
-  reportHabitsList.innerHTML = ""; // Pulisci la lista precedente
+  reportHabitsList.innerHTML = "";
 
-  savedHabits.forEach(habit => {
+  savedHabits.forEach((habit) => {
     let habitTotal = 0;
     let habitMax = 0;
 
-    // Calcola i progressi
-    Object.keys(monthData).forEach(day => {
+    Object.keys(monthData).forEach((day) => {
       if (monthData[day][habit]) {
         habitTotal += Array.isArray(monthData[day][habit])
           ? monthData[day][habit].filter(Boolean).length
-          : 1; // Se è un array (es. Water Intake), somma i valori true
-        habitMax += Array.isArray(monthData[day][habit]) ? 4 : 1; // Max giornaliero
+          : 1;
+        habitMax += Array.isArray(monthData[day][habit]) ? 4 : 1;
       }
     });
 
-    // Crea il report dinamico
     const habitProgress = (habitTotal / (habitMax || 1)) * 100;
     const habitReportItem = `
       <div class="habit-report">
@@ -306,59 +306,59 @@ showReportButton.addEventListener("click", () => {
     reportHabitsList.innerHTML += habitReportItem;
   });
 
-  report.style.display = "block"; // Mostra il report
+  report.style.display = "block";
 });
 
-prevMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  generateCalendar();
-  loadDailyHabits(); // Ricarica le abitudini per il nuovo mese
-});
-
-nextMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  generateCalendar();
-  loadDailyHabits(); // Ricarica le abitudini per il nuovo mese
-});
-
+// Modifica delle abitudini mensili
 editHabitsButton.addEventListener("click", () => {
-  currentMonthTitle.textContent = currentMonthElement.textContent; // Aggiorna il titolo del mese
+  currentMonthTitle.textContent = currentMonthElement.textContent;
   editHabitsModal.style.display = "block";
-  loadMonthlyHabits(); // Carica le abitudini mensili esistenti
+  loadMonthlyHabits();
 });
 
+// Salvataggio delle modifiche alle abitudini mensili
 saveHabitChangesButton.addEventListener("click", () => {
   const currentMonth = currentMonthElement.textContent;
   const selectedHabits = Array.from(habitOptions)
-    .filter(option => option.checked)
-    .map(option => option.value);
+    .filter((option) => option.checked)
+    .map((option) => option.value);
 
   localStorage.setItem(`monthlyHabits-${currentMonth}`, JSON.stringify(selectedHabits));
   alert("Habit settings saved for this month! ✨");
   editHabitsModal.style.display = "none";
 
-  loadDailyHabits(); // Ricarica le abitudini giornaliere
+  loadDailyHabits();
 });
 
+// Caricamento delle abitudini mensili
 function loadMonthlyHabits() {
   const currentMonth = currentMonthElement.textContent;
   const savedHabits = JSON.parse(localStorage.getItem(`monthlyHabits-${currentMonth}`)) || ["Water Intake", "Workout", "Read 10 Pages"];
-  habitOptions.forEach(option => {
+  habitOptions.forEach((option) => {
     option.checked = savedHabits.includes(option.value);
   });
 }
 
+// Navigazione tra i mesi
+prevMonthButton.addEventListener("click", () => {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  generateCalendar();
+  loadDailyHabits();
+});
+
+nextMonthButton.addEventListener("click", () => {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  generateCalendar();
+  loadDailyHabits();
+});
+
+// Inizializzazione
 function initializeHabits() {
   generateCalendar();
   loadDailyHabits();
 }
 
 initializeHabits();
-
   </script>
 </body>
 </html>
-```
-
-<br>
-
