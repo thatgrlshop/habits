@@ -1,6 +1,4 @@
 
-HABITS 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,21 +27,6 @@ HABITS
       font-weight: light;
       margin-bottom: 10px;
       text-align: right;
-    }
-    .calendar-header button {
-      padding: 5px 10px;
-      background-color: #A17E89;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .calendar-header button:hover {
-      background-color: #8c6375;
-    }
-    .calendar-header span {
-      font-size: 18px;
-      font-weight: bold;
     }
     .calendar {
       display: grid;
@@ -100,30 +83,28 @@ HABITS
       border: 1px solid #ddd;
       border-radius: 5px;
       background-color: #fff;
+      display: none;
     }
     .habit-report {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.progress-bar {
-  width: 70%;
-  height: 10px;
-  background-color: #ddd;
-  border-radius: 5px;
-  margin-left: 10px;
-  position: relative;
-}
-
-.progress {
-  height: 100%;
-  background-color: #A17E89;
-  border-radius: 5px;
-  width: 0; /* Default */
-  transition: width 0.3s ease-in-out;
-}
-  
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .progress-bar {
+      width: 70%;
+      height: 10px;
+      background-color: #ddd;
+      border-radius: 5px;
+      margin-left: 10px;
+      position: relative;
+    }
+    .progress {
+      height: 100%;
+      background-color: #A17E89;
+      border-radius: 5px;
+      width: 0;
+      transition: width 0.3s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -138,12 +119,7 @@ HABITS
     <h2 id="selected-date"></h2>
     <div class="habit-item">
       <label>Water Intake:</label>
-      <div class="water-drops">
-        <input type="checkbox" id="water-drop-1">
-        <input type="checkbox" id="water-drop-2">
-        <input type="checkbox" id="water-drop-3">
-        <input type="checkbox" id="water-drop-4">
-      </div>
+      <input type="checkbox" id="water-intake">
     </div>
     <div class="habit-item">
       <label>Workout:</label>
@@ -156,27 +132,27 @@ HABITS
     <button id="save-habits">Save Habits</button>
   </div>
   <button id="show-report">Show Monthly Report</button>
-  <div class="report" id="report" style="display: none;">
-  <h2>Monthly Report</h2>
-  <div class="habit-report" id="habit-water">
-    <label>Water Intake:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
+  <div class="report" id="report">
+    <h2>Monthly Report</h2>
+    <div class="habit-report" id="habit-water">
+      <label>Water Intake:</label>
+      <div class="progress-bar">
+        <div class="progress"></div>
+      </div>
+    </div>
+    <div class="habit-report" id="habit-workout">
+      <label>Workout:</label>
+      <div class="progress-bar">
+        <div class="progress"></div>
+      </div>
+    </div>
+    <div class="habit-report" id="habit-read">
+      <label>Read 10 pages:</label>
+      <div class="progress-bar">
+        <div class="progress"></div>
+      </div>
     </div>
   </div>
-  <div class="habit-report" id="habit-workout">
-    <label>Workout:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
-    </div>
-  </div>
-  <div class="habit-report" id="habit-read">
-    <label>Read 10 pages:</label>
-    <div class="progress-bar">
-      <div class="progress"></div>
-    </div>
-  </div>
-</div>
 
   <script>
     const calendar = document.getElementById("calendar");
@@ -232,12 +208,7 @@ HABITS
 
     document.getElementById("save-habits").addEventListener("click", () => {
       const day = selectedDateElement.textContent;
-      const waterIntake = [
-        document.getElementById("water-drop-1").checked,
-        document.getElementById("water-drop-2").checked,
-        document.getElementById("water-drop-3").checked,
-        document.getElementById("water-drop-4").checked,
-      ];
+      const waterIntake = document.getElementById("water-intake").checked;
       const workout = document.getElementById("workout").checked;
       const readPages = document.getElementById("read-pages").checked;
 
@@ -256,64 +227,54 @@ HABITS
       const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
       const [day, month, year] = date.split(" ");
       const habitsData = savedHabits[`${month} ${year}`]?.[day] || {};
-      const waterIntake = habitsData.waterIntake || [false, false, false, false];
 
-      document.getElementById("water-drop-1").checked = waterIntake[0];
-      document.getElementById("water-drop-2").checked = waterIntake[1];
-      document.getElementById("water-drop-3").checked = waterIntake[2];
-      document.getElementById("water-drop-4").checked = waterIntake[3];
+      document.getElementById("water-intake").checked = habitsData.waterIntake || false;
       document.getElementById("workout").checked = habitsData.workout || false;
       document.getElementById("read-pages").checked = habitsData.readPages || false;
     }
 
     showReportButton.addEventListener("click", () => {
-  const currentMonth = currentMonthElement.textContent;
-  const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-  const monthData = savedHabits[currentMonth] || {};
+      const currentMonth = currentMonthElement.textContent;
+      const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
+      const monthData = savedHabits[currentMonth] || {};
 
-  // Inizializza i contatori
-  let waterTotal = 0, waterMax = 0;
-  let workoutCount = 0, readCount = 0;
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      const progressData = {
+        waterIntake: 0,
+        workout: 0,
+        readPages: 0,
+        totalDays: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(),
+      };
 
-  // Calcola i progressi
-  Object.keys(monthData).forEach(day => {
-    const dayData = monthData[day];
-    waterTotal += dayData.waterIntake.filter(Boolean).length;
-    waterMax += 4; // Max acqua giornaliera
-    if (dayData.workout) workoutCount++;
-    if (dayData.readPages) readCount++;
-  });
+      Object.keys(monthData).forEach((day) => {
+        const dayData = monthData[day];
+        progressData.waterIntake += dayData.waterIntake ? 1 : 0;
+        progressData.workout += dayData.workout ? 1 : 0;
+                progressData.readPages += dayData.readPages ? 1 : 0;
+      });
 
-  // Aggiorna la barra di Water Intake
-  const waterProgress = (waterTotal / (waterMax || 1)) * 100;
-  document.querySelector("#habit-water .progress").style.width = `${waterProgress}%`;
+      updateProgressBar("habit-water", progressData.waterIntake, progressData.totalDays);
+      updateProgressBar("habit-workout", progressData.workout, progressData.totalDays);
+      updateProgressBar("habit-read", progressData.readPages, progressData.totalDays);
 
-  // Aggiorna la barra di Workout
-  const workoutProgress = (workoutCount / daysInMonth) * 100;
-  document.querySelector("#habit-workout .progress").style.width = `${workoutProgress}%`;
+      report.style.display = "block";
+    });
 
-  // Aggiorna la barra di Read
-  const readProgress = (readCount / daysInMonth) * 100;
-  document.querySelector("#habit-read .progress").style.width = `${readProgress}%`;
-
-  // Mostra il report
-  report.style.display = "block";
-});
+    function updateProgressBar(id, value, total) {
+      const progress = (value / total) * 100;
+      document.querySelector(`#${id} .progress`).style.width = `${progress}%`;
+    }
 
     prevMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  generateCalendar();
-});
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      generateCalendar();
+    });
 
-nextMonthButton.addEventListener("click", () => {
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  generateCalendar();
-});
+    nextMonthButton.addEventListener("click", () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      generateCalendar();
+    });
 
-// Inizializza il calendario al caricamento della pagina
-generateCalendar();
+    generateCalendar();
   </script>
 </body>
 </html>
-
