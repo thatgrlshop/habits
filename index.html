@@ -22,12 +22,6 @@
       align-items: center;
       margin-bottom: 20px;
     }
-    #selected-date {
-      font-size: 14px;
-      font-weight: light;
-      margin-bottom: 10px;
-      text-align: right;
-    }
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -63,7 +57,14 @@
       background-color: #fff;
     }
     .habit-item {
+      display: flex;
+      justify-content: space-between;
       margin-bottom: 10px;
+    }
+    .habit-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
     button {
       margin-top: 10px;
@@ -117,173 +118,117 @@
   <div class="calendar" id="calendar"></div>
   <div class="habits" id="habits">
     <h2 id="selected-date"></h2>
-    <div class="habit-item">
-      <label>Water Intake:</label>
-      <input type="checkbox" id="water-intake">
-    </div>
-    <div class="habit-item">
-      <label>Workout:</label>
-      <input type="checkbox" id="workout">
-    </div>
-    <div class="habit-item">
-      <label>Stretching:</label>
-      <input type="checkbox" id="stretching">
-    </div>
-    <div class="habit-item">
-      <label>Daily Walk:</label>
-      <input type="checkbox" id="daily-walk">
+    <div class="habit-list">
+      <div class="habit-item">
+        <label>Water Intake:</label>
+        <input type="checkbox" id="water-intake">
+      </div>
+      <div class="habit-item">
+        <label>Workout:</label>
+        <input type="checkbox" id="workout">
+      </div>
+      <div class="habit-item">
+        <label>Stretching:</label>
+        <input type="checkbox" id="stretching">
+      </div>
+      <div class="habit-item">
+        <label>Posture Exercises:</label>
+        <input type="checkbox" id="posture-exercises">
+      </div>
+      <div class="habit-item">
+        <label>Daily Walk:</label>
+        <input type="checkbox" id="daily-walk">
+      </div>
+      <div class="habit-item">
+        <label>Sleep 7+ Hours:</label>
+        <input type="checkbox" id="sleep">
+      </div>
+      <div class="habit-item">
+        <label>Healthy Diet:</label>
+        <input type="checkbox" id="healthy-diet">
+      </div>
+      <div class="habit-item">
+        <label>3+ Fruits:</label>
+        <input type="checkbox" id="fruits">
+      </div>
+      <div class="habit-item">
+        <label>No Sugar:</label>
+        <input type="checkbox" id="no-sugar">
+      </div>
+      <div class="habit-item">
+        <label>Skincare:</label>
+        <input type="checkbox" id="skincare">
+      </div>
+      <div class="habit-item">
+        <label>Hair Care:</label>
+        <input type="checkbox" id="hair-care">
+      </div>
+      <div class="habit-item">
+        <label>Oral Care:</label>
+        <input type="checkbox" id="oral-care">
+      </div>
+      <div class="habit-item">
+        <label>Gratitude:</label>
+        <input type="checkbox" id="gratitude">
+      </div>
+      <div class="habit-item">
+        <label>Journaling:</label>
+        <input type="checkbox" id="journaling">
+      </div>
+      <div class="habit-item">
+        <label>Reading:</label>
+        <input type="checkbox" id="reading">
+      </div>
+      <div class="habit-item">
+        <label>My Dream Project:</label>
+        <input type="checkbox" id="dream-project">
+      </div>
+      <div class="habit-item">
+        <label>Clean/Declutter:</label>
+        <input type="checkbox" id="clean-declutter">
+      </div>
+      <div class="habit-item">
+        <label>Be Kind:</label>
+        <input type="checkbox" id="be-kind">
+      </div>
+      <div class="habit-item">
+        <label>Family Time:</label>
+        <input type="checkbox" id="family-time">
+      </div>
     </div>
     <button id="save-habits">Save Habits</button>
   </div>
   <button id="show-report">Show Monthly Report</button>
   <div class="report" id="report">
     <h2>Monthly Report</h2>
-    <div class="habit-report" id="habit-water">
-      <label>Water Intake:</label>
-      <div class="progress-bar">
-        <div class="progress"></div>
-      </div>
-    </div>
-    <div class="habit-report" id="habit-workout">
-      <label>Workout:</label>
-      <div class="progress-bar">
-        <div class="progress"></div>
-      </div>
-    </div>
-    <div class="habit-report" id="habit-stretching">
-      <label>Stretching:</label>
-      <div class="progress-bar">
-        <div class="progress"></div>
-      </div>
-    </div>
-    <div class="habit-report" id="habit-daily-walk">
-      <label>Daily Walk:</label>
-      <div class="progress-bar">
-        <div class="progress"></div>
-      </div>
-    </div>
   </div>
 
   <script>
-    const calendar = document.getElementById("calendar");
-    const habits = document.getElementById("habits");
-    const report = document.getElementById("report");
-    const currentMonthElement = document.getElementById("current-month");
-    const selectedDateElement = document.getElementById("selected-date");
-        const prevMonthButton = document.getElementById("prev-month");
-    const nextMonthButton = document.getElementById("next-month");
-    const showReportButton = document.getElementById("show-report");
+    const habits = [
+      "water-intake", "workout", "stretching", "posture-exercises", "daily-walk", 
+      "sleep", "healthy-diet", "fruits", "no-sugar", "skincare", "hair-care", 
+      "oral-care", "gratitude", "journaling", "reading", "dream-project", 
+      "clean-declutter", "be-kind", "family-time"
+    ];
 
-    let currentDate = new Date();
-
-    function generateCalendar() {
-      calendar.innerHTML = "";
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDayIndex = new Date(year, month, 1).getDay();
-
-      currentMonthElement.textContent = `${currentDate.toLocaleString("default", { month: "long" })} ${year}`;
-
-      for (let i = 0; i < firstDayIndex; i++) {
-        calendar.appendChild(document.createElement("div"));
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement("div");
-        dayElement.classList.add("day");
-        dayElement.textContent = day;
-        dayElement.addEventListener("click", () => selectDay(day));
-        calendar.appendChild(dayElement);
-      }
-    }
-
-    function selectDay(day) {
-      document.querySelectorAll(".day").forEach((d) => d.classList.remove("active"));
-      const selectedDay = [...document.querySelectorAll(".day")].find((d) => d.textContent == day);
-      selectedDay.classList.add("active");
-
-      const date = `${day} ${currentDate.toLocaleString("default", { month: "long" })} ${currentDate.getFullYear()}`;
-      selectedDateElement.textContent = date;
-      habits.style.display = "block";
-
-      loadHabits(date);
-    }
-
-    document.getElementById("save-habits").addEventListener("click", () => {
-      const day = selectedDateElement.textContent;
-      const habitData = {
-        waterIntake: document.getElementById("water-intake").checked,
-        workout: document.getElementById("workout").checked,
-        stretching: document.getElementById("stretching").checked,
-        dailyWalk: document.getElementById("daily-walk").checked,
-      };
-
-      const existingData = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      const [dayNumber, month, year] = day.split(" ");
-      if (!existingData[`${month} ${year}`]) existingData[`${month} ${year}`] = {};
-      existingData[`${month} ${year}`][dayNumber] = habitData;
-
-      localStorage.setItem("habitTracker", JSON.stringify(existingData));
-      alert("Habits saved! ✨");
-    });
-
-    function loadHabits(date) {
-      const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      const [day, month, year] = date.split(" ");
-      const habitData = savedHabits[`${month} ${year}`]?.[day] || {};
-
-      document.getElementById("water-intake").checked = habitData.waterIntake || false;
-      document.getElementById("workout").checked = habitData.workout || false;
-      document.getElementById("stretching").checked = habitData.stretching || false;
-      document.getElementById("daily-walk").checked = habitData.dailyWalk || false;
-    }
-
-    showReportButton.addEventListener("click", () => {
-      const currentMonth = currentMonthElement.textContent;
-      const savedHabits = JSON.parse(localStorage.getItem("habitTracker")) || {};
-      const monthData = savedHabits[currentMonth] || {};
-
-      const progressData = {
-        waterIntake: 0,
-        workout: 0,
-        stretching: 0,
-        dailyWalk: 0,
-        totalDays: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(),
-      };
-
-      Object.keys(monthData).forEach((day) => {
-        const dayData = monthData[day];
-        progressData.waterIntake += dayData.waterIntake ? 1 : 0;
-        progressData.workout += dayData.workout ? 1 : 0;
-        progressData.stretching += dayData.stretching ? 1 : 0;
-        progressData.dailyWalk += dayData.dailyWalk ? 1 : 0;
+    function generateHabitReport() {
+      const report = document.getElementById("report");
+      report.innerHTML = `<h2>Monthly Report</h2>`;
+      habits.forEach((habit) => {
+        const habitName = habit.replace(/-/g, " ");
+        report.innerHTML += `
+          <div class="habit-report" id="habit-${habit}">
+            <label>${habitName.replace(/(^\w|\s\w)/g, m => m.toUpperCase())}:</label>
+            <div class="progress-bar">
+              <div class="progress"></div>
+            </div>
+          </div>
+        `;
       });
-
-      updateProgressBar("habit-water", progressData.waterIntake, progressData.totalDays);
-      updateProgressBar("habit-workout", progressData.workout, progressData.totalDays);
-      updateProgressBar("habit-stretching", progressData.stretching, progressData.totalDays);
-      updateProgressBar("habit-daily-walk", progressData.dailyWalk, progressData.totalDays);
-
-      report.style.display = "block";
-    });
-
-    function updateProgressBar(id, value, total) {
-      const progress = (value / total) * 100;
-      document.querySelector(`#${id} .progress`).style.width = `${progress}%`;
     }
 
-    prevMonthButton.addEventListener("click", () => {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      generateCalendar();
-    });
-
-    nextMonthButton.addEventListener("click", () => {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      generateCalendar();
-    });
-
-    generateCalendar();
+    generateHabitReport();
+    // Aggiungi funzioni simili al codice esistente per salvare e calcolare il progresso delle abitudini.
   </script>
 </body>
 </html>
